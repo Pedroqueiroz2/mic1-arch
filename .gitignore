@@ -10,4 +10,4 @@ venv/
 env/
 
 # Outputs gerados automaticamente
-Etapa_1/saida/
+Etapa_*/saida/
