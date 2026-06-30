@@ -3,10 +3,10 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src'))
 
-from ula import Ula
-from instruction import InstructionRegister
-from loader import load_instructions
-from logger import Logger
+from src.ula import Ula
+from src.instruction import InstructionRegister
+from src.loader import load_instructions
+from src.logger import Logger
 
 
 def main():
