@@ -14,7 +14,7 @@ class Logger:
 
     def log_task2_state(self, message, regs):
         with open(self.log_path, 'a', encoding='utf-8') as f:
-            f.write(f"> {message}\n")
+            f.write(f"\n> {message}\n")
             reg_names = ['mar', 'mdr', 'pc', 'mbr', 'sp', 'lv', 'cpp', 'tos', 'opc', 'h']
             for name in reg_names:
                 val = getattr(regs, name)

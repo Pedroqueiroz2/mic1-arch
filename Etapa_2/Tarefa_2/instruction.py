@@ -1,5 +1,3 @@
-# Tarefa_2/instruction.py
-
 class InstructionRegister:
     def __init__(self):
         self.signals = {}

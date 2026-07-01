@@ -1,20 +1,31 @@
 import os
+import sys
 
-from ula import Ula
-from instruction import InstructionRegister
-from logger import Logger
-from loader import Registers 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+
+try:
+    from ula import Ula
+    from instruction import InstructionRegister
+    from logger import Logger
+    from loader import Registers 
+except ImportError as e:
+    print(f"[Erro] Falta de arquivos: {e}")
+    sys.exit(1)
 
 def main():
-    ula = Ula()
-    ir = InstructionRegister()
-    regs = Registers()
-    
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    
     log_path = os.path.join(current_dir, 'saída_etapa2_tarefa2.txt')
     prog_path = os.path.join(current_dir, 'programa_etapa2_tarefa2.txt')
     reg_path = os.path.join(current_dir, 'registradores_etapa2_tarefa2.txt')
+    
+    if not os.path.exists(prog_path) or not os.path.exists(reg_path):
+        print("[Erro] Certifique-se de que os arquivos de texto estao na mesma pasta.")
+        sys.exit(1)
+
+    ula = Ula()
+    ir = InstructionRegister()
+    regs = Registers()
     
     logger = Logger(log_path)
     regs.load_from_file(reg_path)
@@ -33,9 +44,6 @@ def main():
     with open(log_path, 'a', encoding='utf-8') as f:
         f.write("\n=====================================================\nStart of program\n=====================================================\n")
 
-    mbr_raw = regs.mbr & 0xFF
-    mbr_with_sign = (mbr_raw - 256) if (mbr_raw & 0x80) else mbr_raw
-
     for idx, line in enumerate(lines, start=1):
         ir.update(line)
         signals = ir.get_signals()
@@ -43,15 +51,21 @@ def main():
         logger.log_task2_cycle_header(idx, line, signals['b_bus'], signals['c_bus'])
         logger.log_task2_state("Registers before instruction", regs)
         
-        if idx == 1:
-            b_val = mbr_with_sign
-        elif idx == 2:
-            b_val = mbr_with_sign  
-        else:
-            b_val = regs.opc
-            
-        a_val = regs.h
+        b_val = 0
+        if signals['b_bus'] != 'none':
+            if signals['b_bus'] == 'mbr':
+                raw_mbr = regs.mbr & 0xFF
+                b_val = (raw_mbr - 256) if (raw_mbr & 0x80) else raw_mbr
+            elif signals['b_bus'] == 'mbru':
+                b_val = regs.mbr & 0xFF
+            else:
+                val = getattr(regs, signals['b_bus'])
+                b_val = (val - 0x100000000) if (val & 0x80000000) else val
         
+        a_val = regs.h
+        if a_val & 0x80000000:
+            a_val -= 0x100000000
+            
         sd_out = ula.compute(a_val, b_val, signals)
         
         sd_out_masked = sd_out & 0xFFFFFFFF
@@ -62,11 +76,12 @@ def main():
                 setattr(regs, reg_dest, sd_out_final)
                 
         logger.log_task2_state("Registers after instruction", regs)
+        
         if idx < len(lines):
             with open(log_path, 'a', encoding='utf-8') as f:
                 f.write("=====================================================\n")
                 
-    logger.log_eop_task2(len(lines) + 1)
+    logger.log_eop_task2(len(lines))
 
 if __name__ == "__main__":
     main()
