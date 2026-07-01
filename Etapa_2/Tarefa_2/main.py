@@ -53,10 +53,10 @@ def main():
         
         b_val = 0
         if signals['b_bus'] != 'none':
-            if signals['b_bus'] == 'mbr':
+            if signals['b_bus'] == 'mbru':  
                 raw_mbr = regs.mbr & 0xFF
                 b_val = (raw_mbr - 256) if (raw_mbr & 0x80) else raw_mbr
-            elif signals['b_bus'] == 'mbru':
+            elif signals['b_bus'] == 'mbr':
                 b_val = regs.mbr & 0xFF
             else:
                 val = getattr(regs, signals['b_bus'])

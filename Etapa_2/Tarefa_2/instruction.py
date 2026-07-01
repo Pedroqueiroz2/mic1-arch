@@ -6,17 +6,18 @@ class InstructionRegister:
         bits = [int(b) for b in binary_string]
         
         self.signals = {
-            'inva': bits[0],
-            'inc':  bits[1],
+            'sll8': bits[0],
+            'sra1': bits[1],
             'f0':   bits[2],
             'f1':   bits[3],
             'ena':  bits[4],
             'enb':  bits[5],
-            'sll8': bits[6],
-            'sra1': bits[7],
+            'inva': bits[6],
+            'inc':  bits[7],
             'c_bus': [],
             'b_bus': 'none'
         }
+
         
         c_bits = bits[8:17]
         c_regs = ['h', 'opc', 'tos', 'cpp', 'lv', 'sp', 'pc', 'mdr', 'mar']
