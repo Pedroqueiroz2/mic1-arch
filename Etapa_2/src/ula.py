@@ -1,51 +1,43 @@
 class Ula:
     def __init__(self):
-        self.a = 0
-        self.b = 0
-        self.s = 0
-        self.co = 0
-        self.n = 0
-        self.z = 0
+        pass
 
-    def compute(self, a_val, b_val, signals, sll8=0, sra1=0):
-      
-        a_in = a_val & 0xFFFFFFFF
-        b_in = b_val & 0xFFFFFFFF
-
-        a_line = a_in if signals['ena'] else 0
-        b_line = b_in if signals['enb'] else 0
-
-        if signals['inva']:
-            a_line = (~a_line) & 0xFFFFFFFF
-
-        f_type = (signals['f0'] << 1) | signals['f1']
+    def compute(self, a, b, signals):
+        a = a & 0xFFFFFFFF
+        b = b & 0xFFFFFFFF
         
-        carry_out = 0
-        if f_type == 0:    
-            result = a_line & b_line
-        elif f_type == 1:  
-            result = a_line | b_line
-        elif f_type == 2: 
-            result = (~b_line) & 0xFFFFFFFF
-        else:             
-            inc = signals['inc']
-            sum_res = a_line + b_line + inc
-            result = sum_res & 0xFFFFFFFF
-            if sum_res > 0xFFFFFFFF:
-                carry_out = 1
-
-        if sll8:
-            result = (result << 8) & 0xFFFFFFFF
-        elif sra1:
-            sign_bit = result & 0x80000000
-            result = result >> 1
-            if sign_bit:
-                result |= 0x80000000
-
-        self.s = result & 0xFFFFFFFF
-        self.co = carry_out
+        amux = a if signals['ena'] == 1 else 0
+        bmux = b if signals['enb'] == 1 else 0
         
-        self.n = 1 if (self.s & 0x80000000) else 0
-        self.z = 1 if (self.s == 0) else 0
+        if signals['inva'] == 1:
+            amux = (~amux) & 0xFFFFFFFF
+            
+        f0 = signals['f0']
+        f1 = signals['f1']
+        
+        if f0 == 0 and f1 == 0:
+            s = amux & bmux
+        elif f0 == 0 and f1 == 1:
+            s = amux | bmux
+        elif f0 == 1 and f1 == 0:
+            s = (~bmux) & 0xFFFFFFFF
+        else:
+            s = (amux + bmux) & 0xFFFFFFFF
 
-        return self.s, self.co, self.n, self.z
+        if signals['inc'] == 1:
+            s = (s + 1) & 0xFFFFFFFF
+
+        sd = s
+        if signals['sll8'] == 1:
+            sd = (s << 8) & 0xFFFFFFFF
+        elif signals['sra1'] == 1:
+            if s & 0x80000000:
+                sd = (s >> 1) | 0x80000000
+            else:
+                sd = s >> 1
+
+        n = 1 if (sd & 0x80000000) else 0
+        z = 1 if (sd == 0) else 0
+        co = 1 if (f0 == 1 and f1 == 1 and (amux + bmux + signals['inc'] > 0xFFFFFFFF)) else 0
+        
+        return s, sd, co, n, z
