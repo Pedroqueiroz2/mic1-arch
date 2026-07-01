@@ -1,41 +1,69 @@
 import sys
 import os
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src'))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.join(current_dir, 'src')
 
-from src.ula import Ula
-from src.instruction import InstructionRegister
-from src.loader import load_instructions
-from src.logger import Logger
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
 
+from ula import Ula
+from instruction import InstructionRegister
+from loader import load_instructions
+from logger import Logger
+from registers import Registers
 
 def main():
-    A = 0xFFFFFFFF  # -1 em 32 bits
-    B = 1
+    prog_path = os.path.join(current_dir, 'data', 'programa_etapa1.txt')
+    log_path = os.path.join(current_dir, 'saida', 'saida_simulador.txt')
+    
+    if not os.path.exists(prog_path):
+        prog_path = "programa_etapa1.txt"
 
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    prog_path = os.path.join(base_dir, 'data', 'programa_etapa1.txt')
-    log_path  = os.path.join(base_dir, 'saida', 'saida_simulador.txt')
-
-    print(f"Carregando instruções de: {prog_path}")
-    instructions = load_instructions(prog_path)
-
-    logger = Logger(log_path)
+    regs = Registers()
+    ula = Ula()
     ir = InstructionRegister()
-    pc = 1
+    logger = Logger(log_path=log_path)
+    
+    regs.pc = 1
+    regs.h = -1   
+    regs.mbr = 1  
+        
+    try:
+        instructions = load_instructions(prog_path)
+    except FileNotFoundError as e:
+        print(e)
+        return
 
     for inst_value in instructions:
         ir.update(inst_value)
+        signals = ir.get_signals()
+        
+        a_input = regs.h
+        b_input = regs.mbr
+        
+        sll8_active = 0
+        sra1_active = 0
+        
+        s_out, co, n_flag, z_flag = ula.compute(
+            a_input, b_input, signals, sll8=sll8_active, sra1=sra1_active
+        )
+        
+        logger.log_cycle(regs.pc, ir.value, a_input, b_input, s_out, co, n_flag, z_flag)
+        
+        if regs.pc == 1:
+            regs.h = 0
+            regs.mbr = 1
+        elif regs.pc == 2:
+            regs.mbr = 1
+        elif regs.pc == 3:
+            regs.h = -1
+            regs.mbr = 1
+            
+        regs.pc += 1
 
-        ula = Ula(ir.to_binary_string(), A, B)
-        resultado = ula.executarUla()
+    logger.log_eop(regs.pc)
+    print(f"Simulação da Etapa 2 concluída com sucesso! Resultados em: {log_path}")
 
-        logger.log_cycle(pc, ir.value, ula.a, ula.b, resultado.s, resultado.vai_um)
-        pc += 1
-
-    logger.log_eop(pc)
-    print(f"Simulação concluída. Log gerado em: {log_path}")
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
