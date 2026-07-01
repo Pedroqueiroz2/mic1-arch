@@ -10,27 +10,31 @@ from src.logger import Logger
 
 
 def main():
-    A = 0xFFFFFFFF  # -1 em 32 bits
-    B = 1
+    A = 1  # -1 em 32 bits
+    B = 0x80000000
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    prog_path = os.path.join(base_dir, 'data', 'programa_etapa1.txt')
+    prog_path = os.path.join(base_dir, 'data', 'programa_etapa2_tarefa1.txt')
     log_path  = os.path.join(base_dir, 'saida', 'saida_simulador.txt')
 
     print(f"Carregando instruções de: {prog_path}")
     instructions = load_instructions(prog_path)
 
-    logger = Logger(log_path)
+    logger = Logger(log_path, B, A)
     ir = InstructionRegister()
     pc = 1
 
     for inst_value in instructions:
         ir.update(inst_value)
 
-        ula = Ula(ir.to_binary_string(), A, B)
-        resultado = ula.executarUla()
+        try:
+            ula = Ula(ir.to_binary_string(), A, B)
+            resultado = ula.executarUla()
 
-        logger.log_cycle(pc, ir.value, ula.a, ula.b, resultado.s, resultado.vai_um)
+            logger.log_cycle(pc, ir.value, ula.a, ula.b, resultado.s, resultado.sd, resultado.flag_z, resultado.flag_n, resultado.vai_um)
+        except ValueError as e:
+            logger.log_error(pc, ir.value)
+        
         pc += 1
 
     logger.log_eop(pc)

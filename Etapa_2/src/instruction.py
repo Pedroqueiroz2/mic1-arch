@@ -2,6 +2,8 @@ class InstructionRegister:
     def __init__(self):
         self.value = 0
 
+        self.sll8 = 0
+        self.sra1 = 0
         self.f0 = 0
         self.f1 = 0
         self.ena = 0
@@ -9,9 +11,11 @@ class InstructionRegister:
         self.inva = 0
         self.inc = 0
 
-    def update(self, value_6bits):
-        self.value = value_6bits & 0x3F
+    def update(self, value_8bits):
+        self.value = value_8bits & 0xFF
 
+        self.sll8 = (self.value >> 7) & 1
+        self.sra1 = (self.value >> 6) & 1
         self.f0   = (self.value >> 5) & 1
         self.f1   = (self.value >> 4) & 1
         self.ena  = (self.value >> 3) & 1
@@ -21,6 +25,8 @@ class InstructionRegister:
 
     def get_signals(self):
         return {
+            'sll8': self.sll8,
+            'sra1': self.sra1,
             'f0': self.f0,
             'f1': self.f1,
             'ena': self.ena,
@@ -30,4 +36,4 @@ class InstructionRegister:
         }
 
     def to_binary_string(self):
-        return f"{self.value:06b}"
+        return f"{self.value:08b}"

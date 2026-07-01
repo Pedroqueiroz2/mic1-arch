@@ -1,7 +1,8 @@
 
 class UlaResult:
-    def __init__(self, s: int, vai_um: int, flag_z: int, flag_n: int):
+    def __init__(self, s: int, sd: int, vai_um: int, flag_z: int, flag_n: int):
         self.s = s
+        self.sd = sd
         self.vai_um = vai_um
         self.flag_z = flag_z
         self.flag_n = flag_n
@@ -40,7 +41,9 @@ class Ula:
             s_parcial = self.inverter(self.b)
         
         elif self.f0 == 1 and self.f1 == 1:
-            s_parcial, vai_um_parcial = self.soma()
+            s_parcial, vai_um = self.soma()
+            
+        s_final = s_parcial
         
         if self.sll8:
             s_final = self.deslocamento_logico_esquerda(s_parcial)
@@ -50,7 +53,7 @@ class Ula:
         z = 1 if s_final == 0 else 0
         n = 1 if (s_final & 0x80000000) else 0
         
-        return UlaResult(s_final, vai_um_parcial if self.f0 == 1 and self.f1 == 1 else 0, z, n)
+        return UlaResult(s_parcial, s_final, vai_um if self.f0 == 1 and self.f1 == 1 else 0, z, n)
 
     def zerar(self):
         if self.ena == 0:

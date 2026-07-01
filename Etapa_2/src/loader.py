@@ -13,8 +13,8 @@ def load_instructions(file_path):
             if not clean_line or clean_line.startswith("#"):
                 continue
 
-            if len(clean_line) != 6 or not all(bit in '01' for bit in clean_line):
-                print(f"Aviso: Linha inválida ignorada: '{clean_line}'. Deve ser um binário de 6 bits.")
+            if len(clean_line) != 8 or not all(bit in '01' for bit in clean_line):
+                print(f"Aviso: Linha inválida ignorada: '{clean_line}'. Deve ser um binário de 8 bits.")
                 continue
 
             instructions.append(int(clean_line, 2))
