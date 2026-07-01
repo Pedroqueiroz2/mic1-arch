@@ -8,8 +8,8 @@ class Logger:
             os.makedirs(folder)
 
         with open(self.log_path, 'w', encoding='utf-8') as file:
-            file.write(f"B = {b & 0xFFFFFFFF:032b}\n")
-            file.write(f"A = {a & 0xFFFFFFFF:032b}\n\n")
+            file.write(f"b = {b & 0xFFFFFFFF:032b}\n")
+            file.write(f"a = {a & 0xFFFFFFFF:032b}\n\n")
             file.write("Start of Program\n")
             file.write("=" * 60 + "\n")
 
